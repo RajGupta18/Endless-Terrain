@@ -15,13 +15,14 @@ class EndlessTerrain
 {
 public:
 	EndlessTerrain();
-	EndlessTerrain(glm::vec3 pos, int xoff, int zoff);
+	EndlessTerrain(glm::vec3 pos, float viewDist);
 	void GetViewerPosition(glm::vec3 pos);
 	void UpdateVisiblePlanes();
 	void RenderVisiblePlanes();
 	~EndlessTerrain();
 private:
 	ivec2 currKey;
-	int xOffset, zOffset;
+	float maxViewDist;
+	int viewIndexRange;
 };
 #endif

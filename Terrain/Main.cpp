@@ -23,7 +23,7 @@ int main() {
 	mainWindow = Window(1366, 768);
 	if (mainWindow.Init()) return 1;
 
-	cam = Camera(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 6.0f);
+	cam = Camera(glm::vec3(1.0f, 1.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 6.0f);
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight(), 0.1f, 1000.0f);
 	dl = DirectionalLight(glm::vec3(1.0f, 1.0f, 1.0f), 0.3f, 1.0f, glm::vec3(-1.0f, -1.0f, 1.0f));
 
@@ -43,7 +43,7 @@ int main() {
 	terr->CreatePlaneMesh(GL_NORMAL_ARRAY_POINTER, GL_DYNAMIC_DRAW);
 	terr1->CreatePlaneMesh(GL_NORMAL_ARRAY_POINTER, GL_DYNAMIC_DRAW);*/
 	//----------------------------------------------------------------
-	EndlessTerrain endless;
+	EndlessTerrain endless(cam.GetCameraPosition(), 150.0f);
 
 	bool * keys = mainWindow.getsKeys();
 	while (!mainWindow.WindowClose()) {

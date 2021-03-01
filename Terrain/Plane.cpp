@@ -31,9 +31,15 @@ void Plane::CreatePlane() {
 	for (unsigned int j = 0; j <= height; j++) {
 		for (unsigned int i = 0; i <= width; i++) {
 			int ind = (j * (width+1) + i) * 3;
-			vertices[ind] = (-(float)width / 2.0f + i)*(float)LevelOfDetails + LocalPos.x;
+			//if plane is centered based---------------------------------------------------------
+			/*vertices[ind] = (-(float)width / 2.0f + i)*(float)LevelOfDetails + LocalPos.x;
 			vertices[ind + 1] = 0.0f;
-			vertices[ind + 2] = (-(float)height / 2.0f + j)*(float)LevelOfDetails + LocalPos.y;
+			vertices[ind + 2] = (-(float)height / 2.0f + j)*(float)LevelOfDetails + LocalPos.y;*/
+
+			//if plane is corner based-----------------------------------------------------------
+			vertices[ind] = i*(float)LevelOfDetails + LocalPos.x;
+			vertices[ind + 1] = 0.0f;
+			vertices[ind + 2] = j*(float)LevelOfDetails + LocalPos.y;
 		}
 	}
 
