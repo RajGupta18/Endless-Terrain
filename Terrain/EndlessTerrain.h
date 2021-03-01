@@ -1,7 +1,7 @@
 #ifndef __TGEN_ENDLESSTERRAIN_H__
 #define __TGEN_ENDLESSTERRAIN_H__
 
-#include <iostream>
+//#include <iostream>
 #include <thread>
 #include <vector>
 #include <utility>
@@ -24,5 +24,7 @@ private:
 	ivec2 currKey;
 	float maxViewDist;
 	int viewIndexRange;
+
+	int GetLODIndex(ivec2 &viskey);
 };
 #endif

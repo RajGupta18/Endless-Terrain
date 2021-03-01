@@ -32,6 +32,7 @@ int main() {
 	shd.CreateFromFile(vShader, fShader);
 	shd.UseShader();
 	shd.SetMat4("proj", projection);
+	shd.SetFloat1("maxHeight", 50.0f);
 	dl.UseLight(&shd);
 
 	//BUILD TERRAIN---------------------------------------------------
@@ -43,7 +44,7 @@ int main() {
 	terr->CreatePlaneMesh(GL_NORMAL_ARRAY_POINTER, GL_DYNAMIC_DRAW);
 	terr1->CreatePlaneMesh(GL_NORMAL_ARRAY_POINTER, GL_DYNAMIC_DRAW);*/
 	//----------------------------------------------------------------
-	EndlessTerrain endless(cam.GetCameraPosition(), 150.0f);
+	EndlessTerrain endless(cam.GetCameraPosition(), 300.0f);
 
 	bool * keys = mainWindow.getsKeys();
 	while (!mainWindow.WindowClose()) {

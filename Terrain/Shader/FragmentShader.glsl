@@ -15,6 +15,7 @@ struct DirectionLight {
 };
 
 uniform DirectionLight directionlight;
+uniform float maxHeight;
 
 out vec4 col;
 
@@ -32,23 +33,17 @@ vec4 CalcDirectionLight() {
 }
 
 void main() {
-	if(height < 0.5) {
-    	col = vec4(0.00392156,0.4745098,0.43529412,1.0);
+	if (height < maxHeight * 0.1)  {
+		col = vec4(14.0/255.0, 86.0/255.0, 114.0/255.0, 1.0);	//water color
 	}
-	else if(height < 1.0) {
-    	col = vec4(46.0/255.0,139.0/255.0,87.0/255.0,1.0);
+	else if(height < maxHeight * 0.3) {
+		col = vec4(215.0/255.0, 136.0/255.0, 79.0/255.0, 1.0);	//sand color
 	}
-	else if(height < 2.0) {
-    	col = vec4(79.0/255.0,121.0/255.0,66.0/255.0,1.0);
-	}
-	else if(height < 4.0) {
-    	col = vec4(1.0/255.0,121.0/255.0,111.0/255.0,1.0);
-	}
-	else if(height < 7.0) {
-    	col = vec4(0.0/255.0,165.0/255.0,114.0/255.0,1.0);
+	else if(height < maxHeight * 0.7) {
+		col = vec4(16.0/255.0, 113.0/255.0, 35.0/255.0, 1.0);	//forest color
 	}
 	else {
-    	col = vec4(143.0/255.0,151.0/255.0,121.0/255.0,1.0);
+    	col = vec4(247.0/255.0, 252.0/255.0, 254.0/255.0, 1.0);	//snow color
 	}
 	col *= CalcDirectionLight();
 }
