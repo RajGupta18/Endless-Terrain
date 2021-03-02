@@ -2,21 +2,21 @@
 
 Plane::Plane() : Mesh() {
 	LevelOfDetails = 1;
-	width = 1/LevelOfDetails;
-	height = 1/LevelOfDetails;
-	vertexCount = (width + 1)*(height + 1);
-	indexCount = 6 * width * height;
+	meshSize = 1/LevelOfDetails;
+	borderSize = meshSize + 2;
+	vertexCount = (meshSize + 1)*(meshSize + 1);
+	indexCount = 6 * meshSize * meshSize;
 	LocalPos = glm::vec2(0.0f, 0.0f);
 
 	CreatePlane();
 }
 
-Plane::Plane(unsigned int w, unsigned int h, unsigned int lod, glm::vec2 pos) : Mesh() {
+Plane::Plane(int size, unsigned int lod, glm::vec2 pos) : Mesh() {
 	LevelOfDetails = lod;
-	width = w/lod;
-	height = h/lod;
-	vertexCount = (width + 1)*(height + 1);
-	indexCount = 6 * width * height;
+	meshSize = size/lod;
+	borderSize = meshSize + 2;
+	indexCount = 6 * meshSize * meshSize;
+	vertexCount = (meshSize + 1)*(meshSize + 1);
 	LocalPos = pos;
 
 	CreatePlane();
@@ -27,75 +27,160 @@ void Plane::CreatePlane() {
 	normals = new GLfloat[vertexCount * 3];
 	indices = new GLuint[indexCount];
 
-	//for creating vertices...
-	for (unsigned int j = 0; j <= height; j++) {
-		for (unsigned int i = 0; i <= width; i++) {
-			int ind = (j * (width+1) + i) * 3;
-			//if plane is centered based---------------------------------------------------------
-			/*vertices[ind] = (-(float)width / 2.0f + i)*(float)LevelOfDetails + LocalPos.x;
-			vertices[ind + 1] = 0.0f;
-			vertices[ind + 2] = (-(float)height / 2.0f + j)*(float)LevelOfDetails + LocalPos.y;*/
+	verticesIndexMap = new int[(borderSize + 1)*(borderSize + 1)];
 
-			//if plane is corner based-----------------------------------------------------------
-			vertices[ind] = i*(float)LevelOfDetails + LocalPos.x;
-			vertices[ind + 1] = 0.0f;
-			vertices[ind + 2] = j*(float)LevelOfDetails + LocalPos.y;
+	//(4*(meshSize+1) + 4) is no of vertices in border each having 3 float values...
+	borderVertices = new GLfloat[12 * (meshSize + 1) + 12];
+
+	//create Vertices Index Map...
+	int borderIndex = -1;
+	int meshIndex = 0;
+	for (int i = 0; i <= borderSize; i++) {
+		for (int j = 0; j <= borderSize; j++) {
+			int index = i * (borderSize + 1) + j;
+			if (i == 0 || j == 0 || i == borderSize || j == borderSize) {
+				verticesIndexMap[index] = borderIndex;
+				borderIndex--;
+			}
+			else {
+				verticesIndexMap[index] = meshIndex;
+				meshIndex++;
+			}
 		}
 	}
 
-	//for creatinf indices...
+	//for creating vertices (Corner based)...
+	for (int i = 0; i <= borderSize; i++) {
+		for (int j = 0; j <= borderSize; j++) {
+			int vertexIndex = verticesIndexMap[i * (borderSize + 1) + j];
+
+			if (vertexIndex >= 0) {	//mesh vertices...
+				int ind = vertexIndex * 3;
+				vertices[ind] = (i - 1) * (float)LevelOfDetails + LocalPos.x;
+				vertices[ind + 1] = 0.0f;
+				vertices[ind + 2] = (j - 1) * (float)LevelOfDetails + LocalPos.y;
+			}
+			else {	//border vertices...
+				int ind = -(vertexIndex + 1) * 3;
+				borderVertices[ind] = (i - 1) * (float)LevelOfDetails + LocalPos.x;
+				borderVertices[ind + 1] = 0.0f;
+				borderVertices[ind + 2] = (j - 1) * (float)LevelOfDetails + LocalPos.y;
+			}
+		}
+	}
+
+
+	//for creating indices...
 	int indpos = 0;
-	for (unsigned int j = 0; j < height; j++) {
-		for (unsigned int i = 0; i < width; i++) {
-			int ind = j * (width+1) + i;
+	for (int i = 0; i < meshSize; i++) {
+		for (int j = 0; j < meshSize; j++) {
+			int ind = i * (meshSize+1) + j;
 			//first triangle.
 			indices[indpos] = ind;
 			indices[indpos + 1] = ind + 1;
-			indices[indpos + 2] = ind + width + 2;
+			indices[indpos + 2] = ind + meshSize + 2;
 			//second triangle.
 			indices[indpos + 3] = ind;
-			indices[indpos + 4] = ind + width + 2;
-			indices[indpos + 5] = ind + width + 1;
+			indices[indpos + 4] = ind + meshSize + 2;
+			indices[indpos + 5] = ind + meshSize + 1;
 			//increment to add next 6 inidces of next 2 triangles.
 			indpos += 6;
 		}
 	}
 }
 
-void Plane::CreatePlaneMesh(GLenum array_type, GLenum draw_type) {
-	//createMesh...
-	if (array_type == GL_NORMAL_ARRAY_POINTER) CreateMesh(vertices, indices, normals, vertexCount * 3, indexCount, draw_type);
-	else CreateMesh(vertices, indices, vertexCount * 3, indexCount, draw_type);
+void Plane::CreatePlaneMesh(GLenum draw_type) {
+	//Load mesh in GPU...
+	CreateMesh(vertices, indices, normals, vertexCount * 3, indexCount, draw_type);
 }
 
-void Plane::UpdatePlaneMesh(GLenum array_type) {
-	if (array_type == GL_NORMAL_ARRAY_POINTER) UpdateMesh(vertices, indices, normals, vertexCount * 3, indexCount);
+void Plane::UpdatePlaneMesh() {
+	UpdateMesh(vertices, indices, normals, vertexCount * 3, indexCount);
 	//else UpdateMesh(vertices, indices, vertexCount * 3, indexCount, draw_type);
 }
 
 void Plane::RecalculateNormals() {
-
 	//reset normals to zero....
 	for (unsigned int i = 0; i < vertexCount * 3; i++) {
 		normals[i] = 0.0f;
 	}
 
-	for (unsigned int i = 0; i < indexCount; i+=3) {
-		//vertex indices...
-		unsigned int v1 = indices[i] * 3;
-		unsigned int v2 = indices[i + 1] * 3;
-		unsigned int v3 = indices[i + 2] * 3;
+	for (int i = 0; i < borderSize; i++) {
+		for (int j = 0; j < borderSize; j++) {
+			// vertex indices...
+			int a = verticesIndexMap[i * (borderSize + 1) + j];
+			int b = verticesIndexMap[i * (borderSize + 1) + j + 1];
+			int c = verticesIndexMap[(i + 1) * (borderSize + 1) + j + 1];
+			int d = verticesIndexMap[(i + 1) * (borderSize + 1) + j];
 
-		//calculate surface vectors to get unit normal...
-		glm::vec3 s1(vertices[v2] - vertices[v1], vertices[v2 + 1] - vertices[v1 + 1], vertices[v2 + 2] - vertices[v1 + 2]);
-		glm::vec3 s2(vertices[v3] - vertices[v2], vertices[v3 + 1] - vertices[v2 + 1], vertices[v3 + 2] - vertices[v2 + 2]);
-		glm::vec3 normal = glm::cross(s2, s1);
-		normal = glm::normalize(normal);
+			glm::vec3 avec;
+			if (a < 0) {
+				int ind = -(a + 1) * 3;
+				avec = glm::vec3(borderVertices[ind], borderVertices[ind + 1], borderVertices[ind + 2]);
+			}
+			else {
+				int ind = a * 3;
+				avec = glm::vec3(vertices[ind], vertices[ind + 1], vertices[ind + 2]);
+			}
 
-		//add normal direction to its respective vertex index...
-		normals[v1] += normal.x; normals[v1 + 1] += normal.y; normals[v1 + 2] += normal.z;
-		normals[v2] += normal.x; normals[v2 + 1] += normal.y; normals[v2 + 2] += normal.z;
-		normals[v2] += normal.x; normals[v3 + 1] += normal.y; normals[v3 + 2] += normal.z;
+			glm::vec3 bvec;
+			if (b < 0) {
+				int ind = -(b + 1) * 3;
+				bvec = glm::vec3(borderVertices[ind], borderVertices[ind + 1], borderVertices[ind + 2]);
+			}
+			else {
+				int ind = b * 3;
+				bvec = glm::vec3(vertices[ind], vertices[ind + 1], vertices[ind + 2]);
+			}
+
+			glm::vec3 cvec;
+			if (c < 0) {
+				int ind = -(c + 1) * 3;
+				cvec = glm::vec3(borderVertices[ind], borderVertices[ind + 1], borderVertices[ind + 2]);
+			}
+			else {
+				int ind = c * 3;
+				cvec = glm::vec3(vertices[ind], vertices[ind + 1], vertices[ind + 2]);
+			}
+
+			glm::vec3 dvec;
+			if (d < 0) {
+				int ind = -(d + 1) * 3;
+				dvec = glm::vec3(borderVertices[ind], borderVertices[ind + 1], borderVertices[ind + 2]);
+			}
+			else {
+				int ind = d * 3;
+				dvec = glm::vec3(vertices[ind], vertices[ind + 1], vertices[ind + 2]);
+			}
+
+			glm::vec3 normal1 = glm::normalize(-glm::cross(cvec - bvec, bvec - avec));
+			glm::vec3 normal2 = glm::normalize(-glm::cross(avec - dvec, dvec - cvec));
+
+			if (a >= 0) {
+				int ind = a * 3;
+				normals[ind] += (normal1.x + normal2.x);
+				normals[ind + 1] += (normal1.y + normal2.y);
+				normals[ind + 2] += (normal1.z + normal2.z);
+			}
+			if (c >= 0) {
+				int ind = c * 3;
+				normals[ind] += (normal1.x + normal2.x);
+				normals[ind + 1] += (normal1.y + normal2.y);
+				normals[ind + 2] += (normal1.z + normal2.z);
+			}
+			if (b >= 0) {
+				int ind = b * 3;
+				normals[ind] += normal1.x;
+				normals[ind + 1] += normal1.y;
+				normals[ind + 2] += normal1.z;
+			}
+			if (d >= 0) {
+				int ind = d * 3;
+				normals[ind] += normal2.x;
+				normals[ind + 1] += normal2.y;
+				normals[ind + 2] += normal2.z;
+			}
+		}
 	}
 
 	//average all normals on a vertex...
@@ -111,6 +196,8 @@ void Plane::ClearPlaneMesh() {
 	delete[] vertices;
 	delete[] indices;
 	delete[] normals;
+	delete[] verticesIndexMap;
+	delete[] borderVertices;
 	ClearMesh();
 }
 

@@ -13,7 +13,7 @@ class Terrain :
 {
 public:
 	Terrain();
-	Terrain(GLuint w, GLuint h, GLuint lod, glm::vec2 pos,
+	Terrain(int size, unsigned int lod, glm::vec2 pos,
 			GLfloat s, GLfloat hScale);
 	void BuildTerrainFBM();
 	/*void UpdateTerrain(bool *keys);

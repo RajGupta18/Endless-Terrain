@@ -1,7 +1,6 @@
 #ifndef __TGEN_ENDLESSTERRAIN_H__
 #define __TGEN_ENDLESSTERRAIN_H__
 
-//#include <iostream>
 #include <thread>
 #include <vector>
 #include <utility>

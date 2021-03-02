@@ -15,8 +15,8 @@ Terrain::Terrain() : Plane() {
 	heightScale = 1.0f;
 }
 
-Terrain::Terrain(GLuint w, GLuint h, GLuint lod, glm::vec2 pos,
-				GLfloat s, GLfloat hScale) : Plane(w, h, lod, pos) {
+Terrain::Terrain(int size, unsigned int lod, glm::vec2 pos,
+				GLfloat s, GLfloat hScale) : Plane(size, lod, pos) {
 	mapScale = s;
 	heightScale = hScale;
 }
@@ -52,29 +52,41 @@ Terrain::Terrain(GLuint w, GLuint h, GLuint lod, glm::vec2 pos,
 
 void Terrain::BuildTerrainFBM() {
 	CreatePlane();
-	GLfloat maxheight = CalculateMaxHeight(); //-100000.0f;
-	GLfloat minheight = 0.0f; //100000.0f;
-	for (unsigned int j = 0;j <= height; j++) {
-		for (unsigned int i = 0; i <= width; i++) {
-			unsigned int ind = (j * (width + 1) + i) * 3;
+	GLfloat maxheight = CalculateMaxHeight();
+	GLfloat minheight = 0.0f;
 
-			GLfloat frequency = 1;
-			GLfloat amplitude = 1;
-			GLfloat netHeight = 0.0f;
-			for (unsigned int k = 0; k < octaves; k++) {
-				GLfloat perlinValue = heightMap.Noise2D(vertices[ind] / mapScale * frequency, vertices[ind + 2] / mapScale * frequency)+1;
-				netHeight += perlinValue * amplitude;
-				frequency *= lacunarity;
-				amplitude *= persistence;
+	for (int i = 0; i <= borderSize; i++) {
+		for (int j = 0; j <= borderSize; j++) {
+			int vertexIndex = verticesIndexMap[i * (borderSize + 1) + j];
+
+			if (vertexIndex >= 0) {	//mesh vertices...
+				int ind = vertexIndex * 3;
+				
+				GLfloat frequency = 1;
+				GLfloat amplitude = 1;
+				GLfloat netHeight = 0.0f;
+				for (unsigned int k = 0; k < octaves; k++) {
+					GLfloat perlinValue = heightMap.Noise2D(vertices[ind] / mapScale * frequency, vertices[ind + 2] / mapScale * frequency) + 1;
+					netHeight += perlinValue * amplitude;
+					frequency *= lacunarity;
+					amplitude *= persistence;
+				}
+				vertices[ind + 1] = heightScale * pow((netHeight - minheight) / (maxheight - minheight), 2);
 			}
-			vertices[ind + 1] = netHeight;
-		}
-	}
-	//normalize value between 0 and 1 then scale with heightscale...
-	for (unsigned int j = 0;j <= height; j++) {
-		for (unsigned int i = 0; i <= width; i++) {
-			unsigned int ind = (j * (width + 1) + i) * 3;
-			vertices[ind + 1] = heightScale * pow((vertices[ind+1]-minheight)/(maxheight-minheight),2);
+			else {	//border vertices...
+				int ind = -(vertexIndex + 1) * 3;
+				
+				GLfloat frequency = 1;
+				GLfloat amplitude = 1;
+				GLfloat netHeight = 0.0f;
+				for (unsigned int k = 0; k < octaves; k++) {
+					GLfloat perlinValue = heightMap.Noise2D(borderVertices[ind] / mapScale * frequency, borderVertices[ind + 2] / mapScale * frequency) + 1;
+					netHeight += perlinValue * amplitude;
+					frequency *= lacunarity;
+					amplitude *= persistence;
+				}
+				borderVertices[ind + 1] = heightScale * pow((netHeight - minheight) / (maxheight - minheight), 2);
+			}
 		}
 	}
 	RecalculateNormals();
@@ -98,6 +110,4 @@ GLfloat Terrain::CalculateMaxHeight() {
 //	}
 //}
 
-Terrain::~Terrain() {
-	//delete[] octOffset;
-}
+Terrain::~Terrain() {}

@@ -29,7 +29,7 @@ int RoundtoInt(float val) {
 }
 
 void planethread(ivec2 key, glm::vec2 pos, int lodInd) {
-	VisiblePlanes[key].terrain = new Terrain(chunksize, chunksize, LODS[lodInd], pos, 100.0f, 50.0f);
+	VisiblePlanes[key].terrain = new Terrain(chunksize, LODS[lodInd], pos, 100.0f, 50.0f);
 	VisiblePlanes[key].LOD = lodInd;
 	VisiblePlanes[key].terrain->BuildTerrainFBM();
 	//VisiblePlanes[key]->RecalculateNormals();
@@ -54,7 +54,6 @@ void EndlessTerrain::GetViewerPosition(glm::vec3 pos) {
 	ivec2 newKey = ivec2(RoundtoInt(pos.x / chunksize), RoundtoInt(pos.z / chunksize));
 	if (currKey != newKey) {
 		currKey = newKey;
-		//std::cout << "Visible Planes Updated!!" << std::endl;
 		UpdateVisiblePlanes();
 	}
 }
@@ -110,7 +109,7 @@ void EndlessTerrain::UpdateVisiblePlanes() {
 		t.join();
 	}
 	for (auto p : newPlanes) {
-		p.terrain->CreatePlaneMesh(GL_NORMAL_ARRAY_POINTER, GL_STATIC_DRAW);
+		p.terrain->CreatePlaneMesh(GL_STATIC_DRAW);
 	}
 	newPlanes.clear();
 }

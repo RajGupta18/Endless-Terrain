@@ -9,18 +9,22 @@ class Plane :
 {
 public:
 	Plane();
-	Plane(unsigned int w, unsigned int h, unsigned int lod, glm::vec2 pos);
-	void CreatePlaneMesh(GLenum array_type, GLenum draw_type);
-	void UpdatePlaneMesh(GLenum array_type);
+	Plane(int size, unsigned int lod, glm::vec2 pos);
+	void CreatePlaneMesh(GLenum draw_type);
+	void UpdatePlaneMesh();
 	void RecalculateNormals();
 	void ClearPlaneMesh();
 	~Plane();
 protected:
-	unsigned int width, height;
+	int meshSize;
+	int borderSize;
 	GLfloat* vertices;
 	GLfloat* normals;
 	GLuint* indices;
 	GLuint vertexCount, indexCount;
+
+	int* verticesIndexMap;
+	GLfloat* borderVertices;
 
 	void CreatePlane();
 private:
