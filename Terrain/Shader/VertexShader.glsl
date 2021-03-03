@@ -13,5 +13,5 @@ uniform mat4 NormalMatrix;
 void main() {
     gl_Position = proj*view*model*vec4(pos.x, pos.y, pos.z, 1.0);
     Normal = (NormalMatrix * vec4(norm,0.0)).xyz;
-    height = pos.y;
+    height = pos.y*10.0;
 }
