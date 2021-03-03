@@ -23,20 +23,28 @@ int main() {
 	mainWindow = Window(1366, 768);
 	if (mainWindow.Init()) return 1;
 
-	cam = Camera(glm::vec3(1.0f, 20.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 6.0f);
-	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight(), 0.1f, 1000.0f);
+	cam = Camera(glm::vec3(1.0f, 20.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 15.0f);
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight(), 0.1f, 1500.0f);
 	dl = DirectionalLight(glm::vec3(1.0f, 1.0f, 1.0f), 0.3f, 1.0f, glm::vec3(-1.0f, -1.0f, 1.0f));
+
+	//model transformation...
+	glm::mat4 model(1.0f);
+	glm::mat4 NormalMat(1.0f);
+	model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+	NormalMat = glm::transpose(glm::inverse(model));
 
 	//initialise Shader...
 	Shader shd = Shader();
 	shd.CreateFromFile(vShader, fShader);
 	shd.UseShader();
 	shd.SetMat4("proj", projection);
-	shd.SetFloat1("maxHeight", 50.0f);
+	shd.SetMat4("model", model);
+	shd.SetMat4("NormalMatrix", NormalMat);
+	shd.SetFloat1("maxHeight", 50.0f*10.0f);
 	dl.UseLight(&shd);
 
 	//BUILD TERRAIN---------------------------------------------------
-	EndlessTerrain endless(cam.GetCameraPosition(), 300.0f);
+	EndlessTerrain endless(cam.GetCameraPosition()/10.0f, 390.0f);
 
 	bool * keys = mainWindow.getsKeys();
 	while (!mainWindow.WindowClose()) {
@@ -54,7 +62,7 @@ int main() {
 		if (keys[GLFW_KEY_F]) {
 			cam.SetCameraPosition(glm::vec3(0.0f,1.0f,0.0f));
 		}
-		endless.GetViewerPosition(cam.GetCameraPosition());
+		endless.GetViewerPosition(cam.GetCameraPosition()/10.0f);
 		/*terr->UpdateTerrain(keys);
 		terr1->UpdateTerrain(keys);
 		Terrain::SetPressedFalse();*/
@@ -64,12 +72,6 @@ int main() {
 
 		shd.UseShader();
 		shd.SetMat4("view", cam.GetViewMatrix());
-
-		glm::mat4 model(1.0f);
-		glm::mat4 NormalMat(1.0f);
-		NormalMat = glm::transpose(glm::inverse(model));
-		shd.SetMat4("model", model);
-		shd.SetMat4("NormalMatrix", NormalMat);
 		endless.RenderVisiblePlanes();
 
 		glUseProgram(0);

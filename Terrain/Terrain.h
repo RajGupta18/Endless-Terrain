@@ -12,26 +12,25 @@ class Terrain :
 	public Plane
 {
 public:
+	void TerrainThread();
+
 	Terrain();
 	Terrain(int size, unsigned int lod, glm::vec2 pos,
 			GLfloat s, GLfloat hScale);
 	void BuildTerrainFBM();
-	/*void UpdateTerrain(bool *keys);
+	~Terrain();
 
 	static void SetTerrainParameters(GLuint seed);
-	static void UpdateParameters(bool *keys);
-	static void SetPressedFalse() { pressed = false; }
-	static GLfloat maxT(GLfloat a, GLfloat b) { return (a >= b) ? a : b; }
-	static GLfloat minT(GLfloat a, GLfloat b) { return (a < b) ? a : b; }*/
-	~Terrain();
 private:
 	GLfloat mapScale, heightScale;
 	GLfloat CalculateMaxHeight();
 
+	GLfloat GetHeightProfile(GLfloat val);
+
 	static PerlinNoise heightMap;
 	static GLuint octaves;
 	static GLfloat lacunarity, persistence;
-	/*static GLfloat *octOffset;
-	static bool pressed;*/
+	static GLfloat *octOffset;
+	static bool has_set;
 };
 #endif

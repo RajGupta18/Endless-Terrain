@@ -1,7 +1,11 @@
 #include "EndlessTerrain.h"
 
-const int chunksize = 120;
-const int LODS[] = { 1,4,6,12 };
+int EndlessTerrain::chunksize = 120;
+EndlessTerrain::LODInfo EndlessTerrain::LODS[4] = { EndlessTerrain::LODInfo(2,170.0f),
+													EndlessTerrain::LODInfo(4,340.0f),
+													EndlessTerrain::LODInfo(6,510.0f),
+													EndlessTerrain::LODInfo(12, 680.0f) };
+const float EndlessTerrain::MoveThreshold = 25.0f*25.0f;
 
 struct ivec2_hash {
 	template <class T1, class T2>
@@ -28,15 +32,9 @@ int RoundtoInt(float val) {
 	return (val < 0.0f) ? (int)val - 1 : (int)val;
 }
 
-void planethread(ivec2 key, glm::vec2 pos, int lodInd) {
-	VisiblePlanes[key].terrain = new Terrain(chunksize, LODS[lodInd], pos, 100.0f, 50.0f);
-	VisiblePlanes[key].LOD = lodInd;
-	VisiblePlanes[key].terrain->BuildTerrainFBM();
-	//VisiblePlanes[key]->RecalculateNormals();
-	newPlanes.push_front(VisiblePlanes[key]);
-}
-
 EndlessTerrain::EndlessTerrain() {
+	viewerPos = glm::vec3(0.0f, 0.0f, 0.0f);
+	viewerPosOld = viewerPos;
 	currKey = ivec2(0, 0);
 	maxViewDist = 300.0f/2;
 	viewIndexRange = (int)(maxViewDist / chunksize);
@@ -44,6 +42,8 @@ EndlessTerrain::EndlessTerrain() {
 }
 
 EndlessTerrain::EndlessTerrain(glm::vec3 pos, float viewDist) {
+	viewerPos = pos;
+	viewerPosOld = viewerPos;
 	currKey = ivec2(RoundtoInt(pos.x / chunksize), RoundtoInt(pos.z / chunksize));
 	maxViewDist = viewDist;
 	viewIndexRange = (int)(maxViewDist / chunksize);
@@ -51,10 +51,15 @@ EndlessTerrain::EndlessTerrain(glm::vec3 pos, float viewDist) {
 }
 
 void EndlessTerrain::GetViewerPosition(glm::vec3 pos) {
-	ivec2 newKey = ivec2(RoundtoInt(pos.x / chunksize), RoundtoInt(pos.z / chunksize));
-	if (currKey != newKey) {
+	viewerPos = pos;
+	
+	//check if viewer has moved more than the threshold(If yes then updateTerrains)...
+	float dist = (viewerPos.x - viewerPosOld.x)*(viewerPos.x - viewerPosOld.x) + (viewerPos.z - viewerPosOld.z)*(viewerPos.z - viewerPosOld.z);
+	if (dist > MoveThreshold) {
+		ivec2 newKey = ivec2(RoundtoInt(pos.x / chunksize), RoundtoInt(pos.z / chunksize));
 		currKey = newKey;
 		UpdateVisiblePlanes();
+		viewerPosOld = viewerPos;
 	}
 }
 
@@ -93,14 +98,20 @@ void EndlessTerrain::UpdateVisiblePlanes() {
 
 					//create mesh for new lod...
 					glm::vec2 vispos(visKey.first * chunksize, visKey.second * chunksize);
-					std::thread t(planethread, visKey, vispos, lodIndex);
+					VisiblePlanes[visKey].terrain = new Terrain(chunksize, lodIndex, vispos, 80.0f, 50.0f);
+					VisiblePlanes[visKey].LOD = lodIndex;
+					newPlanes.push_front(VisiblePlanes[visKey]);
+					std::thread t(&Terrain::TerrainThread, VisiblePlanes[visKey].terrain);
 					threads.push_back(std::move(t));
 				}
 			}
 			//create mesh if not contained in visible mesh...
 			else {
 				glm::vec2 vispos(visKey.first * chunksize, visKey.second * chunksize);
-				std::thread t(planethread, visKey, vispos, lodIndex);
+				VisiblePlanes[visKey].terrain = new Terrain(chunksize, lodIndex, vispos, 80.0f, 50.0f);
+				VisiblePlanes[visKey].LOD = lodIndex;
+				newPlanes.push_front(VisiblePlanes[visKey]);
+				std::thread t(&Terrain::TerrainThread, VisiblePlanes[visKey].terrain);
 				threads.push_back(std::move(t));
 			}
 		}
@@ -110,14 +121,18 @@ void EndlessTerrain::UpdateVisiblePlanes() {
 	}
 	for (auto p : newPlanes) {
 		p.terrain->CreatePlaneMesh(GL_STATIC_DRAW);
+		//p.terrain->DeletePlane();
 	}
 	newPlanes.clear();
 }
 
 int EndlessTerrain::GetLODIndex(ivec2 &viskey) {
-	int dist = abs(viskey.first - currKey.first) + abs(viskey.second - currKey.second);
-	if (dist <= 1) return 0;
-	return dist-1;
+	glm::vec2 tpos = glm::vec2(viskey.first*chunksize + 60.0f, viskey.second*chunksize + 60.0f);
+	float dist = (tpos.x - viewerPos.x)*(tpos.x - viewerPos.x) + (tpos.y - viewerPos.z)*(tpos.y - viewerPos.z);
+	for (int i = 0; i < 4; i++) {
+		if (dist < LODS[i].viewerDist*LODS[i].viewerDist) return LODS[i].LOD;
+	}
+	return LODS[3].LOD;
 }
 
 void EndlessTerrain::RenderVisiblePlanes() {

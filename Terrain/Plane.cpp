@@ -7,8 +7,6 @@ Plane::Plane() : Mesh() {
 	vertexCount = (meshSize + 1)*(meshSize + 1);
 	indexCount = 6 * meshSize * meshSize;
 	LocalPos = glm::vec2(0.0f, 0.0f);
-
-	CreatePlane();
 }
 
 Plane::Plane(int size, unsigned int lod, glm::vec2 pos) : Mesh() {
@@ -18,8 +16,6 @@ Plane::Plane(int size, unsigned int lod, glm::vec2 pos) : Mesh() {
 	indexCount = 6 * meshSize * meshSize;
 	vertexCount = (meshSize + 1)*(meshSize + 1);
 	LocalPos = pos;
-
-	CreatePlane();
 }
 
 void Plane::CreatePlane() {
@@ -192,12 +188,16 @@ void Plane::RecalculateNormals() {
 	}
 }
 
-void Plane::ClearPlaneMesh() {
+void Plane::DeletePlane() {
 	delete[] vertices;
 	delete[] indices;
 	delete[] normals;
 	delete[] verticesIndexMap;
 	delete[] borderVertices;
+}
+
+void Plane::ClearPlaneMesh() {
+	DeletePlane();
 	ClearMesh();
 }
 

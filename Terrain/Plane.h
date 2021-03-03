@@ -10,10 +10,12 @@ class Plane :
 public:
 	Plane();
 	Plane(int size, unsigned int lod, glm::vec2 pos);
+	void CreatePlane();
 	void CreatePlaneMesh(GLenum draw_type);
 	void UpdatePlaneMesh();
 	void RecalculateNormals();
 	void ClearPlaneMesh();
+	void DeletePlane();
 	~Plane();
 protected:
 	int meshSize;
@@ -26,7 +28,6 @@ protected:
 	int* verticesIndexMap;
 	GLfloat* borderVertices;
 
-	void CreatePlane();
 private:
 	glm::vec2 LocalPos;
 	unsigned int LevelOfDetails;
