@@ -26,6 +26,7 @@ public:
 	void SetMat4(std::string name, glm::mat4 matrix);
 	void SetFloat1(std::string name, GLfloat value);
 	void SetFloat3(std::string name, GLfloat xVal, GLfloat yVal, GLfloat zVal);
+	void SetInt1(std::string name, GLint value);
 
 	~Shader();
 

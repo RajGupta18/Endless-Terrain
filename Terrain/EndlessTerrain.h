@@ -1,6 +1,8 @@
 #ifndef __TGEN_ENDLESSTERRAIN_H__
 #define __TGEN_ENDLESSTERRAIN_H__
 
+#include "Shader.h"
+
 #include <thread>
 #include <vector>
 #include <utility>
@@ -23,11 +25,19 @@ public:
 		}
 	};
 
+	struct ColorData {
+		glm::vec3 color;
+		float baseHeight;
+		float blendStrength;
+	};
+
 	EndlessTerrain();
 	EndlessTerrain(glm::vec3 pos, float viewDist);
 	void GetViewerPosition(glm::vec3 pos);
 	void UpdateVisiblePlanes();
 	void RenderVisiblePlanes();
+
+	void SetColorDataArray(Shader *shader, ColorData colordata[], int colorCount);
 	~EndlessTerrain();
 private:
 	glm::vec3 viewerPos, viewerPosOld;

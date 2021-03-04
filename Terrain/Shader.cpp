@@ -110,6 +110,10 @@ void Shader::SetFloat3(std::string name, GLfloat xVal, GLfloat yVal, GLfloat zVa
 	glUniform3f(glGetUniformLocation(ShaderID, name.c_str()), xVal, yVal, zVal);
 }
 
+void Shader::SetInt1(std::string name, GLint value) {
+	glUniform1i(glGetUniformLocation(ShaderID, name.c_str()), value);
+}
+
 void Shader::ClearShader() {
 	if (ShaderID) {
 		glDeleteProgram(ShaderID);

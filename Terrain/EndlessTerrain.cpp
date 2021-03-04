@@ -141,4 +141,16 @@ void EndlessTerrain::RenderVisiblePlanes() {
 	}
 }
 
+void EndlessTerrain::SetColorDataArray(Shader *shader, ColorData colordata[], int colorCount) {
+	shader->SetInt1("ColorDataCount", colorCount);
+
+	for (int i = 0; i < colorCount; i++) {
+		std::string s = "coldata[";
+		s += std::to_string(i);
+		shader->SetFloat3(s + "].color", colordata[i].color.x, colordata[i].color.y, colordata[i].color.z);
+		shader->SetFloat1(s + "].baseHeight", colordata[i].baseHeight);
+		shader->SetFloat1(s + "].blendStrength", colordata[i].blendStrength);
+	}
+}
+
 EndlessTerrain::~EndlessTerrain() {}

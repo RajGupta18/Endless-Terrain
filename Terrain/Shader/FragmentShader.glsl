@@ -14,6 +14,17 @@ struct DirectionLight {
 	vec3 direction;
 };
 
+struct ColorData {
+	vec3 color;
+	float baseHeight;
+	float blendStrength;
+};
+
+const int maxColorDataCount = 4;
+
+uniform int ColorDataCount;
+uniform ColorData coldata[maxColorDataCount];
+
 uniform DirectionLight directionlight;
 uniform float maxHeight;
 
@@ -32,18 +43,23 @@ vec4 CalcDirectionLight() {
 	return CalcLightByDirection(directionlight.base, -directionlight.direction);
 }
 
+float sat(float x) {
+	if(x <= 0.0) return 0.0;
+	return 1.0;
+}
+
+float invLerp(float a, float b, float x) {
+	return clamp((x-a)/(b-a), 0.0, 1.0);
+}
+
 void main() {
-	if (height < maxHeight * 0.1)  {
-		col = vec4(14.0/255.0, 86.0/255.0, 114.0/255.0, 1.0);	//water color
+	float heightPercent = height / maxHeight;
+	vec3 color = vec3(0.0, 0.0, 0.0);
+	for(int i =0; i<ColorDataCount; i++) {
+		//float strength = sat(heightPercent - coldata[i].baseHeight);
+		float strength = invLerp(-coldata[i].blendStrength/2 - 0.0001, coldata[i].blendStrength/2, heightPercent-coldata[i].baseHeight);
+		color = color*(1.0-strength) + (strength)*coldata[i].color;
 	}
-	else if(height < maxHeight * 0.3) {
-		col = vec4(215.0/255.0, 136.0/255.0, 79.0/255.0, 1.0);	//sand color
-	}
-	else if(height < maxHeight * 0.7) {
-		col = vec4(16.0/255.0, 113.0/255.0, 35.0/255.0, 1.0);	//forest color
-	}
-	else {
-    	col = vec4(247.0/255.0, 252.0/255.0, 254.0/255.0, 1.0);	//snow color
-	}
+	col = vec4(color, 1.0);
 	col *= CalcDirectionLight();
 }
