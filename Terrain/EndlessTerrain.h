@@ -8,7 +8,8 @@
 #include <utility>
 #include <unordered_map>
 #include <forward_list>
-#include "Terrain.h"
+#include "BorderTerrain.h"
+//#include "Terrain.h"
 
 typedef std::pair<int, int> ivec2;
 

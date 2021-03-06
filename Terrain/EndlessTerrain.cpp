@@ -1,10 +1,10 @@
 #include "EndlessTerrain.h"
 
-int EndlessTerrain::chunksize = 120;
-EndlessTerrain::LODInfo EndlessTerrain::LODS[4] = { EndlessTerrain::LODInfo(2,170.0f),
-													EndlessTerrain::LODInfo(4,340.0f),
-													EndlessTerrain::LODInfo(6,510.0f),
-													EndlessTerrain::LODInfo(12, 680.0f) };
+int EndlessTerrain::chunksize = BorderPlane::chunkSize;
+EndlessTerrain::LODInfo EndlessTerrain::LODS[4] = { EndlessTerrain::LODInfo(0,170.0f),
+													EndlessTerrain::LODInfo(1,340.0f),
+													EndlessTerrain::LODInfo(2,510.0f),
+													EndlessTerrain::LODInfo(3, 680.0f) };
 const float EndlessTerrain::MoveThreshold = 25.0f*25.0f;
 
 struct ivec2_hash {
@@ -18,7 +18,8 @@ struct ivec2_hash {
 };
 
 struct TerrainData {
-	Terrain* terrain;
+	//Terrain* terrain;
+	BorderTerrain* terrain;
 	int LOD;
 };
 
@@ -70,7 +71,8 @@ void EndlessTerrain::UpdateVisiblePlanes() {
 	{
 		ivec2 key = it->first;
 		if (abs(key.first - currKey.first) > viewIndexRange || abs(key.second - currKey.second) > viewIndexRange) {
-			Terrain* temp = VisiblePlanes[key].terrain;
+			//Terrain* temp = VisiblePlanes[key].terrain;
+			BorderTerrain* temp = VisiblePlanes[key].terrain;
 			delete temp;
 			it = VisiblePlanes.erase(it);
 		}
@@ -93,34 +95,40 @@ void EndlessTerrain::UpdateVisiblePlanes() {
 				if (lodIndex == VisiblePlanes[visKey].LOD) continue;	//continue if lod doesn't change...
 				else {
 					//first delete previous lod's mesh...
-					Terrain* temp = VisiblePlanes[visKey].terrain;
+					//Terrain* temp = VisiblePlanes[visKey].terrain;
+					BorderTerrain* temp = VisiblePlanes[visKey].terrain;
 					delete temp;
 
 					//create mesh for new lod...
 					glm::vec2 vispos(visKey.first * chunksize, visKey.second * chunksize);
-					VisiblePlanes[visKey].terrain = new Terrain(chunksize, lodIndex, vispos, 80.0f, 50.0f);
+					//VisiblePlanes[visKey].terrain = new Terrain(chunksize, lodIndex, vispos, 80.0f, 50.0f);
+					VisiblePlanes[visKey].terrain = new BorderTerrain(lodIndex, vispos, 80.0f, 50.0f);
 					VisiblePlanes[visKey].LOD = lodIndex;
 					newPlanes.push_front(VisiblePlanes[visKey]);
-					std::thread t(&Terrain::TerrainThread, VisiblePlanes[visKey].terrain);
+					std::thread t(&BorderTerrain::TerrainThread, VisiblePlanes[visKey].terrain);
 					threads.push_back(std::move(t));
 				}
 			}
 			//create mesh if not contained in visible mesh...
 			else {
 				glm::vec2 vispos(visKey.first * chunksize, visKey.second * chunksize);
-				VisiblePlanes[visKey].terrain = new Terrain(chunksize, lodIndex, vispos, 80.0f, 50.0f);
+				//VisiblePlanes[visKey].terrain = new Terrain(chunksize, lodIndex, vispos, 80.0f, 50.0f);
+				VisiblePlanes[visKey].terrain = new BorderTerrain(lodIndex, vispos, 80.0f, 50.0f);
 				VisiblePlanes[visKey].LOD = lodIndex;
 				newPlanes.push_front(VisiblePlanes[visKey]);
-				std::thread t(&Terrain::TerrainThread, VisiblePlanes[visKey].terrain);
+				std::thread t(&BorderTerrain::TerrainThread, VisiblePlanes[visKey].terrain);
 				threads.push_back(std::move(t));
 			}
 		}
 	}
+
 	for (auto &t : threads) {
 		t.join();
 	}
+
 	for (auto p : newPlanes) {
-		p.terrain->CreatePlaneMesh(GL_STATIC_DRAW);
+		p.terrain->CreateBorderPlaneMesh(GL_STATIC_DRAW);
+		//p.terrain->CreatePlaneMesh(GL_STATIC_DRAW);
 		//p.terrain->DeletePlane();
 	}
 	newPlanes.clear();

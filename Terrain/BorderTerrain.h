@@ -1,24 +1,27 @@
-#ifndef __TGEN_TERRAIN_H__
-#define __TGEN_TERRAIN_H__
+#ifndef __TGEN_BORDER_TERRAIN_H__
+#define __TGEN_BORDER_TERRAIN_H__
 
 #include <stdlib.h>
 
-#include "Plane.h"
+#include "BorderPlane.h"
 #include "PerlinNoise.h"
 
-class Terrain :
-	public Plane
+class BorderTerrain :
+	public BorderPlane
 {
 public:
 	void TerrainThread();
 
-	Terrain();
-	Terrain(int size, unsigned int lod, glm::vec2 pos,
-			GLfloat s, GLfloat hScale);
+	BorderTerrain();
+	BorderTerrain(unsigned int lodInd, glm::vec2 pos,
+		GLfloat s, GLfloat hScale);
+	~BorderTerrain();
+
 	void BuildTerrainFBM();
-	~Terrain();
 
 	static void SetTerrainParameters(GLuint seed);
+	static GLfloat *octOffset;
+
 private:
 	GLfloat mapScale, heightScale;
 	GLfloat CalculateMaxHeight();
@@ -28,7 +31,6 @@ private:
 	static PerlinNoise heightMap;
 	static GLuint octaves;
 	static GLfloat lacunarity, persistence;
-	static GLfloat *octOffset;
 	static bool has_set;
 };
 #endif

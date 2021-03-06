@@ -28,7 +28,7 @@ int main() {
 	shd.CreateFromFile(vShader, fShader);
 
 	cam = Camera(glm::vec3(1.0f, 20.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 15.0f);
-	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight(), 0.1f, 1500.0f);
+	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight(), 0.1f, 2500.0f);
 	dl = DirectionalLight(glm::vec3(1.0f, 1.0f, 1.0f), 0.3f, 1.0f, glm::vec3(-1.0f, -1.0f, 1.0f));
 
 	//model transformation...
@@ -36,8 +36,7 @@ int main() {
 	glm::mat4 NormalMat(1.0f);
 	model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
 	NormalMat = glm::transpose(glm::inverse(model));
-
-
+	
 	//BUILD TERRAIN---------------------------------------------------
 	EndlessTerrain endless(cam.GetCameraPosition()/10.0f, 390.0f);
 	EndlessTerrain::ColorData colordata[4];
@@ -93,5 +92,7 @@ int main() {
 		mainWindow.SwapBuffers();
 		glfwPollEvents();
 	}
+	delete[] BorderTerrain::octOffset;
+	glfwTerminate();
 	return 0;
 }
