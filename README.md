@@ -1,5 +1,11 @@
 # Endless-Terrain
-This is a Computer Graphics Project on Endless Terrain Generation
+This is a Computer Graphics Project on Endless Terrain Generation with LOD's Switching (for optimization). Developed in C++ and OpenGL (Supported for OpenGL 3.3+).
+
+![](./images/terrain.jpg)
+
+### LOD Switching
+
+![](./images/terrain_LOD_Switching.jpg)
 
 ### Controls
 
