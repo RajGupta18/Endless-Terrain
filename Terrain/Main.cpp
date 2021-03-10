@@ -23,22 +23,24 @@ int main() {
 	mainWindow = Window(1366, 768);
 	if (mainWindow.Init()) return 1;
 
+	const float modelScale = 10.0f;
+
 	//initialise Shader...
 	Shader shd = Shader();
 	shd.CreateFromFile(vShader, fShader);
 
-	cam = Camera(glm::vec3(1.0f, 20.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 15.0f);
+	cam = Camera(glm::vec3(1.0f, 55.0f* modelScale, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f, 10.0f, 15.0f);
 	glm::mat4 projection = glm::perspective(45.0f, (GLfloat)mainWindow.GetBufferWidth() / mainWindow.GetBufferHeight(), 0.1f, 2500.0f);
 	dl = DirectionalLight(glm::vec3(1.0f, 1.0f, 1.0f), 0.3f, 1.0f, glm::vec3(-1.0f, -1.0f, 1.0f));
 
 	//model transformation...
 	glm::mat4 model(1.0f);
 	glm::mat4 NormalMat(1.0f);
-	model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+	model = glm::scale(model, glm::vec3(modelScale, modelScale, modelScale));
 	NormalMat = glm::transpose(glm::inverse(model));
 	
 	//BUILD TERRAIN---------------------------------------------------
-	EndlessTerrain endless(cam.GetCameraPosition()/10.0f, 390.0f);
+	EndlessTerrain endless(cam.GetCameraPosition()/modelScale, 390.0f);
 	EndlessTerrain::ColorData colordata[4];
 
 	colordata[0].color = glm::vec3(14.0f / 255.0f, 86.0f / 255.0f, 114.0f / 255.0f);
@@ -59,7 +61,8 @@ int main() {
 	shd.SetMat4("proj", projection);
 	shd.SetMat4("model", model);
 	shd.SetMat4("NormalMatrix", NormalMat);
-	shd.SetFloat1("maxHeight", 50.0f*10.0f);
+	shd.SetFloat1("maxHeight", 50.0f*modelScale);
+	shd.SetFloat1("modelScale", modelScale);
 	dl.UseLight(&shd);
 	endless.SetColorDataArray(&shd, colordata, 4);
 
@@ -79,7 +82,7 @@ int main() {
 		if (keys[GLFW_KEY_F]) {
 			cam.SetCameraPosition(glm::vec3(0.0f,1.0f,0.0f));
 		}
-		endless.GetViewerPosition(cam.GetCameraPosition()/10.0f);
+		endless.GetViewerPosition(cam.GetCameraPosition()/modelScale);
 
 		cam.KeyControls(keys, deltaTime);
 		cam.MouseControls(mainWindow.getXchange(), mainWindow.getYchange(), deltaTime);
