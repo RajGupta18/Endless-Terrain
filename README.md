@@ -1,5 +1,5 @@
 # Endless-Terrain
-This is a Computer Graphics Project on Endless Terrain Generation with LOD's Switching (for optimization). Developed in C++ and OpenGL (Supported for OpenGL 3.3+). A demo video of procedural world can be found [here](https://youtu.be/L9I1TIo402w)
+This is a Computer Graphics Project on Endless Terrain Generation with LOD's Switching (for optimization). Developed in C++ and OpenGL (Supported for OpenGL 3.3+). A demo video of procedural world can be found [here](https://youtu.be/NynwXLmo1Oc)
 
 ![](./images/terrain.JPG)
 
